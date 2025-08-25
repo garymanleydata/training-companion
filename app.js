@@ -1,4 +1,3 @@
-<script>
 (function(){
   const app = document.getElementById('app');
   const nav = document.getElementById('nav');
@@ -231,4 +230,3 @@
   window.addEventListener('load', ()=> render(location.hash));
   window.requestRender = () => render(location.hash);
 })();
-</script>
