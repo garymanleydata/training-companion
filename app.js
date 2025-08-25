@@ -1,4 +1,4 @@
-
+<script>
 (function(){
   const app = document.getElementById('app');
   const nav = document.getElementById('nav');
@@ -7,6 +7,7 @@
   const yearEl = document.getElementById('year');
   if(yearEl) yearEl.textContent = new Date().getFullYear();
 
+  // --- Router render ---
   function render(route){
     const view = route.replace('#','').replace('/','') || '';
     const key = view || 'home';
@@ -16,18 +17,19 @@
       return;
     }
     app.innerHTML = fn();
-    // update FAB handler
     fab.onclick = () => FAB.run(key);
-    // highlight active nav
+
+    // active tab style
     if(nav){
       [...nav.querySelectorAll('a')].forEach(a => {
         const active = a.getAttribute('href') === `#/${key}` || (key==='home' && a.getAttribute('href')==='#/');
         a.classList.toggle('active', !!active);
       });
     }
+    afterRender(); // bind events for the current DOM
   }
 
-  // Default home view
+  // --- Views ---
   Views.home = function(){
     const s = getSettings();
     const name = s.name ? `, ${s.name}` : '';
@@ -38,10 +40,9 @@
           <h3>Welcome${name}</h3>
           <p class="meta">Local-first, offline app. Your data stays in your browser. Export from <a href="#/settings">Settings</a>.${hr}</p>
         </div>
-
         <div class="card span-6">
           <h3>Quick add — Run</h3>
-          <form id="qaRun">
+          <form id="qaRun" onsubmit="return false">
             <label>Date <input type="date" name="date" required></label>
             <div class="grid">
               <div class="span-6"><label>Distance (km) <input type="number" step="0.01" name="dist" required></label></div>
@@ -51,10 +52,9 @@
             <button class="btn primary" type="submit">Save run</button>
           </form>
         </div>
-
         <div class="card span-6">
           <h3>Quick add — Meditation</h3>
-          <form id="qaMed">
+          <form id="qaMed" onsubmit="return false">
             <label>Date <input type="date" name="date" required></label>
             <label>Method
               <select name="method">
@@ -68,7 +68,6 @@
             <button class="btn primary" type="submit">Save meditation</button>
           </form>
         </div>
-
         <div class="card span-12">
           <h3>Recent</h3>
           ${recentFeed()}
@@ -99,18 +98,18 @@
     }).join('') + `</div>`;
   }
 
-  // Wire quick add forms after each render
+  // --- Bind all events for the current DOM (fixes “page not found”) ---
   function afterRender(){
+    // Home quick adds
     const r = document.getElementById('qaRun');
     if(r){
       r.addEventListener('submit', (e)=>{
         e.preventDefault();
         const f = new FormData(r);
-        const time = toSeconds(String(f.get('time')||''));
         add('runs', {
           date: f.get('date'),
           distance_km: Number(f.get('dist')),
-          time_sec: time,
+          time_sec: toSeconds(String(f.get('time')||'')),
           hr_avg: f.get('hr') ? Number(f.get('hr')) : null,
           notes: ''
         });
@@ -122,122 +121,114 @@
       m.addEventListener('submit', (e)=>{
         e.preventDefault();
         const f = new FormData(m);
-        add('meditation', {
-          date: f.get('date'),
-          method: f.get('method'),
-          duration_min: Number(f.get('min'))
-        });
+        add('meditation', { date: f.get('date'), method: f.get('method'), duration_min: Number(f.get('min')) });
         location.hash = '#/meditation';
+      });
+    }
+
+    // Runs module
+    const runsForm = document.getElementById('runsForm');
+    if(runsForm){
+      runsForm.addEventListener('submit', (e)=>{
+        e.preventDefault();
+        const f = new FormData(runsForm);
+        add('runs', {
+          date: f.get('date'),
+          distance_km: Number(f.get('distance')),
+          time_sec: toSeconds(String(f.get('time')||'')),
+          hr_avg: f.get('hr') ? Number(f.get('hr')) : null,
+          notes: f.get('notes') || ''
+        });
+        runsForm.reset();
+        render('#/runs');
+      });
+    }
+
+    // Strength module
+    const stForm = document.getElementById('stForm');
+    const addEx = document.getElementById('addEx');
+    const exWrap = document.getElementById('exWrap');
+    if(addEx && exWrap){
+      addEx.addEventListener('click', ()=>{
+        const fs = exWrap.firstElementChild.cloneNode(true);
+        fs.querySelectorAll('input').forEach(i=> i.value='');
+        exWrap.appendChild(fs);
+      });
+    }
+    if(stForm && exWrap){
+      stForm.addEventListener('submit', (e)=>{
+        e.preventDefault();
+        const f = new FormData(stForm);
+        const ex = [];
+        exWrap.querySelectorAll('fieldset').forEach(fs => {
+          ex.push({
+            name: fs.querySelector('[name=ex_name]').value,
+            sets: Number(fs.querySelector('[name=ex_sets]').value||0),
+            reps: Number(fs.querySelector('[name=ex_reps]').value||0),
+            load_kg: Number(fs.querySelector('[name=ex_load]').value||0)
+          });
+        });
+        add('strength', { date: f.get('date'), session_type: f.get('stype')||'', exercises: ex });
+        stForm.reset();
+        render('#/strength');
+      });
+    }
+
+    // Fasting module
+    const fastForm = document.getElementById('fastForm');
+    if(fastForm){
+      fastForm.addEventListener('submit', (e)=>{
+        e.preventDefault();
+        const f = new FormData(fastForm);
+        add('fasting', {
+          start: new Date(f.get('start')).toISOString(),
+          end: f.get('end') ? new Date(f.get('end')).toISOString() : null,
+          type: f.get('type') || 'Timer'
+        });
+        fastForm.reset();
+        render('#/fasting');
+      });
+    }
+
+    // Meditation module
+    const medForm = document.getElementById('medForm');
+    if(medForm){
+      medForm.addEventListener('submit', (e)=>{
+        e.preventDefault();
+        const f = new FormData(medForm);
+        add('meditation', { date:f.get('date'), method:f.get('method'), duration_min: Number(f.get('min')) });
+        medForm.reset();
+        render('#/meditation');
+      });
+    }
+
+    // parkrun module
+    const pkForm = document.getElementById('pkForm');
+    if(pkForm){
+      pkForm.addEventListener('submit', (e)=>{
+        e.preventDefault();
+        const f = new FormData(pkForm);
+        add('parkrun', {
+          date: f.get('date'),
+          event_name: f.get('event'),
+          time_sec: toSeconds(String(f.get('time'))),
+          age_grade: f.get('age') ? Number(f.get('age')) : null,
+          position: f.get('pos') ? Number(f.get('pos')) : null
+        });
+        pkForm.reset();
+        render('#/parkrun');
       });
     }
   }
 
-  // Nav menu toggle (mobile)
+  // Mobile menu
   if(menuBtn && nav){
     menuBtn.addEventListener('click', ()=> nav.classList.toggle('open'));
-    nav.addEventListener('click', (e)=>{
-      if(e.target.matches('a[data-link]')) nav.classList.remove('open');
-    });
+    nav.addEventListener('click', (e)=>{ if(e.target.matches('a[data-link]')) nav.classList.remove('open'); });
   }
 
-  // Route changes
-  window.addEventListener('hashchange', ()=>{ render(location.hash); afterRender(); });
-  window.addEventListener('load', ()=>{ render(location.hash); afterRender(); });
-
-  // Expose a small helper for modules to re-render
-  window.requestRender = () => { render(location.hash); afterRender(); };
+  window.addEventListener('hashchange', ()=> render(location.hash));
+  window.addEventListener('load', ()=> render(location.hash));
+  window.requestRender = () => render(location.hash);
 })();
-
-
-Views.settings = function(){
-  const s = getSettings();
-  return `
-    <section class="card">
-      <h3>Settings</h3>
-      <form id="setForm">
-        <label>Your name <input name="name" value="${s.name||''}" placeholder="Gary"></label>
-        <div class="grid">
-          <div class="span-6"><label>Age <input type="number" name="age" value="${s.age||''}" placeholder="e.g. 40"></label></div>
-          <div class="span-6"><label>Units
-            <select name="units">
-              <option ${s.units==='km'?'selected':''}>km</option>
-              <option ${s.units==='mi'?'selected':''}>mi</option>
-            </select>
-          </label></div>
-        </div>
-
-        <div class="card" style="margin-top:1rem">
-          <h4>Backup</h4>
-          <button class="btn" type="button" id="exportBtn">Export data (JSON)</button>
-          <label class="meta" style="display:block;margin-top:.6rem">Import JSON <input type="file" id="importFile" accept="application/json"></label>
-          <div class="meta">Import replaces your current data (choose “merge” below to append uniques).</div>
-          <div style="margin-top:.6rem">
-            <label><input type="checkbox" id="mergeChk"> Merge instead of replace</label>
-          </div>
-        </div>
-
-        <div style="margin-top:1rem;display:flex;gap:.6rem;flex-wrap:wrap">
-          <button class="btn primary" type="submit">Save settings</button>
-          <button class="btn" type="button" id="clearBtn">Clear all data</button>
-        </div>
-      </form>
-      <p class="meta" style="margin-top:1rem">MAF HR estimate: ${s.age? mafHR(s.age) : '—'} bpm (180 − age)</p>
-    </section>
-    <script>
-      (function(){
-        const f = document.getElementById('setForm');
-        const exportBtn = document.getElementById('exportBtn');
-        const importFile = document.getElementById('importFile');
-        const mergeChk = document.getElementById('mergeChk');
-        const clearBtn = document.getElementById('clearBtn');
-        f.addEventListener('submit', (e)=>{
-          e.preventDefault();
-          const fd = new FormData(f);
-          setSettings({
-            name: fd.get('name'),
-            age: fd.get('age') ? Number(fd.get('age')) : null,
-            units: fd.get('units')
-          });
-          alert('Saved');
-          requestRender();
-        });
-        exportBtn.addEventListener('click', exportJSON);
-        importFile.addEventListener('change', async (e) => {
-          const file = e.target.files[0];
-          if(!file) return;
-          try{
-            await importJSON(file, { merge: mergeChk.checked });
-            alert('Import complete');
-            requestRender();
-          }catch(err){
-            alert('Import failed: ' + err.message);
-          }
-          e.target.value = '';
-        });
-        clearBtn.addEventListener('click', ()=>{
-          if(confirm('This will delete ALL your data from this browser. Continue?')){
-            localStorage.removeItem('tc_data_v1');
-            alert('Cleared');
-            requestRender();
-          }
-        });
-      })();
-    </script>
-  `;
-};
-
-Views.about = function(){
-  return `
-    <section class="card">
-      <h3>About</h3>
-      <p>This is a local-first, offline-capable Progressive Web App designed for training: runs, strength, fasting, meditation, and parkrun logs. Your data lives in your browser (localStorage). You can export/import JSON anytime.</p>
-      <p>Tip: Add this to your phone Home Screen to use it like a native app.</p>
-      <ul class="meta">
-        <li>No accounts. No trackers. Works offline.</li>
-        <li>Free to host on GitHub Pages.</li>
-        <li>Pluggable modules — add more over time.</li>
-      </ul>
-    </section>
-  `;
-};
-
+</script>
