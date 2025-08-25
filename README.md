@@ -2,7 +2,7 @@
 
 Local-first, offline-ready, single-page web app for logging runs, strength, fasting, meditation and parkrun — no servers, no build steps.
 
-## Quick start
+## Quick start 
 1. Create a GitHub repo (public) named **training-companion** (or any name).
 2. Upload all files from this folder to the repo root.
 3. In the repo: **Settings → Pages → Deploy from a branch**, pick `main` and `/ (root)`.
