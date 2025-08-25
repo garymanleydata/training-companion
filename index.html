@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Training Companion</title>
+  <meta name="description" content="Personal training companion (runs, strength, fasting, meditation, parkrun) — offline PWA." />
+  <meta name="theme-color" content="#0ea5e9" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="icons/icon-192.png" sizes="192x192" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <a class="sr-only" href="#app">Skip to content</a>
+
+  <header class="topbar">
+    <button id="menuBtn" aria-label="Open menu" class="menu">☰</button>
+    <h1 class="brand">Training Companion</h1>
+    <nav id="nav" class="nav" aria-label="Main">
+      <a href="#/" data-link>Home</a>
+      <a href="#/runs" data-link>Runs</a>
+      <a href="#/strength" data-link>Strength</a>
+      <a href="#/fasting" data-link>Fasting</a>
+      <a href="#/meditation" data-link>Meditation</a>
+      <a href="#/parkrun" data-link>parkrun</a>
+      <a href="#/settings" data-link>Settings</a>
+      <a href="#/about" data-link>About</a>
+    </nav>
+  </header>
+
+  <main id="app" class="container"></main>
+
+  <button id="fab" class="fab" title="Add new" aria-label="Add new">＋</button>
+
+  <footer class="foot">
+    <small>© <span id="year"></span> Training Companion • Offline‑ready PWA</small>
+  </footer>
+
+  <script src="lib.js"></script>
+  <script src="modules/runs.js"></script>
+  <script src="modules/strength.js"></script>
+  <script src="modules/fasting.js"></script>
+  <script src="modules/meditation.js"></script>
+  <script src="modules/parkrun.js"></script>
+  <script src="app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js'));
+    }
+  </script>
+</body>
+</html>
