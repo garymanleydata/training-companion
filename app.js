@@ -6,6 +6,16 @@
   const yearEl = document.getElementById('year');
   if(yearEl) yearEl.textContent = new Date().getFullYear();
 
+  function applyNavVisibility(){
+    if(!nav) return;
+    const p = (getSettings().pages) || {};
+    const mods = ['runs','strength','fasting','meditation','parkrun','metrics','stats'];
+    mods.forEach(m => {
+      const link = nav.querySelector(`a[href="#/${m}"]`);
+      if(link) link.style.display = (p[m] !== false) ? '' : 'none';
+    });
+  }
+
   function render(route){
     const view = route.replace('#','').replace('/','') || '';
     const key = view || 'home';
@@ -30,6 +40,7 @@
     const s = getSettings();
     const name = s.name ? `, ${s.name}` : '';
     const hr = s.age ? ` · MAF HR ≈ <strong>${mafHR(s.age)}</strong>` : '';
+    const p = s.pages || {};
     return `
       <section class="grid">
         <div class="card span-12">
@@ -37,7 +48,7 @@
           <p class="meta">Local-first, offline app. Your data stays in your browser. Export from <a href="#/settings">Settings</a>.${hr}</p>
         </div>
 
-        <div class="card span-6">
+        ${p.runs===false ? '' : `<div class="card span-6">
           <h3>Quick add — Run</h3>
           <form id="qaRun" onsubmit="return false">
             <label>Date <input type="date" name="date" required></label>
@@ -48,9 +59,9 @@
             <label>Avg HR (optional) <input type="number" name="hr"></label>
             <button class="btn primary" type="submit">Save run</button>
           </form>
-        </div>
+        </div>`}
 
-        <div class="card span-6">
+        ${p.meditation===false ? '' : `<div class="card span-6">
           <h3>Quick add — Meditation</h3>
           <form id="qaMed" onsubmit="return false">
             <label>Date <input type="date" name="date" required></label>
@@ -60,12 +71,13 @@
                 <option>Box breathing</option>
                 <option>Wim Hof</option>
                 <option>Nasal-only</option>
+                <option>Airofit</option>
               </select>
             </label>
             <label>Duration (min) <input type="number" name="min" required></label>
             <button class="btn primary" type="submit">Save meditation</button>
           </form>
-        </div>
+        </div>`}
 
         <div class="card span-12">
           <h3>Recent</h3>
@@ -77,6 +89,7 @@
 
   Views.settings = function(){
     const s = getSettings();
+    const p = s.pages || {};
     return `
       <section class="card">
         <h3>Settings</h3>
@@ -90,6 +103,17 @@
                 <option ${s.units==='mi'?'selected':''}>mi</option>
               </select>
             </label></div>
+          </div>
+
+          <div class="card" style="margin-top:1rem">
+            <h4>Pages</h4>
+            <label><input type="checkbox" name="show_runs" ${p.runs===false?'':'checked'}> Runs</label><br>
+            <label><input type="checkbox" name="show_strength" ${p.strength===false?'':'checked'}> Strength</label><br>
+            <label><input type="checkbox" name="show_fasting" ${p.fasting===false?'':'checked'}> Fasting</label><br>
+            <label><input type="checkbox" name="show_meditation" ${p.meditation===false?'':'checked'}> Meditation</label><br>
+            <label><input type="checkbox" name="show_parkrun" ${p.parkrun===false?'':'checked'}> parkrun</label><br>
+            <label><input type="checkbox" name="show_metrics" ${p.metrics===false?'':'checked'}> Metrics</label><br>
+            <label><input type="checkbox" name="show_stats" ${p.stats===false?'':'checked'}> Stats</label>
           </div>
 
           <div class="card" style="margin-top:1rem">
@@ -128,12 +152,14 @@
 
   // ---- Helpers ----
   function recentFeed(){
+    const p = (getSettings().pages) || {};
     const rows = [
-      ...list('runs').map(x => ({...x, _type:'Run', _stamp:x.createdAt})),
-      ...list('strength').map(x => ({...x, _type:'Strength', _stamp:x.createdAt})),
-      ...list('fasting').map(x => ({...x, _type:'Fasting', _stamp:x.createdAt})),
-      ...list('meditation').map(x => ({...x, _type:'Meditation', _stamp:x.createdAt})),
-      ...list('parkrun').map(x => ({...x, _type:'parkrun', _stamp:x.createdAt}))
+      ...(p.runs===false ? [] : list('runs').map(x => ({...x, _type:'Run', _stamp:x.createdAt}))),
+      ...(p.strength===false ? [] : list('strength').map(x => ({...x, _type:'Strength', _stamp:x.createdAt}))),
+      ...(p.fasting===false ? [] : list('fasting').map(x => ({...x, _type:'Fasting', _stamp:x.createdAt}))),
+      ...(p.meditation===false ? [] : list('meditation').map(x => ({...x, _type:'Meditation', _stamp:x.createdAt}))),
+      ...(p.parkrun===false ? [] : list('parkrun').map(x => ({...x, _type:'parkrun', _stamp:x.createdAt}))),
+      ...(p.metrics===false ? [] : list('metrics').map(x => ({...x, _type:'Metrics', _stamp:x.createdAt})))
     ].sort((a,b)=> new Date(b._stamp) - new Date(a._stamp)).slice(0,10);
     if(!rows.length) return `<p class="meta">Nothing logged yet — try the quick add forms above or visit a module from the nav.</p>`;
     return `<div class="list">` + rows.map(r => {
@@ -142,7 +168,16 @@
         if(r._type==='Meditation') return `${r.duration_min} min · ${r.method}`;
         if(r._type==='Fasting') return r.end ? `${Math.round((new Date(r.end)-new Date(r.start))/36e5)} h` : `Started`;
         if(r._type==='parkrun') return `${fmtTimeSeconds(r.time_sec)} · ${r.event_name}`;
-        if(r._type==='Strength') return (r.exercises||[]).map(e=>`${e.name} ${e.sets}×${e.reps}@${e.load_kg||0}kg`).join(', ');
+        if(r._type==='Strength') return [
+          r.duration_min!=null ? r.duration_min + ' min' : null,
+          (r.exercises||[]).map(e=>`${e.name} ${e.sets}×${e.reps}@${e.load_kg||0}kg`).join(', ')
+        ].filter(Boolean).join(' · ');
+        if(r._type==='Metrics') return [
+          r.weight_kg!=null ? `${r.weight_kg} kg` : null,
+          r.waist_cm!=null ? `Waist ${r.waist_cm} cm` : null,
+          r.hips_cm!=null ? `Hips ${r.hips_cm} cm` : null,
+          r.bust_cm!=null ? `Bust ${r.bust_cm} cm` : null
+        ].filter(Boolean).join(' · ');
         return '';
       })();
       return `<div class="row"><div><span class="badge">${r._type}</span> ${fmtDate(r.date||r.start||r._stamp)}</div><div class="meta">${right}</div></div>`;
@@ -218,7 +253,7 @@
             load_kg: Number(fs.querySelector('[name=ex_load]').value||0)
           });
         });
-        add('strength', { date: f.get('date'), session_type: f.get('stype')||'', exercises: ex });
+        add('strength', { date: f.get('date'), session_type: f.get('stype')||'', duration_min: f.get('dur') ? Number(f.get('dur')) : null, exercises: ex });
         stForm.reset();
         render('#/strength');
       });
@@ -266,6 +301,23 @@
         render('#/parkrun');
       });
     }
+    // Metrics page
+    const metricsForm = document.getElementById('metricsForm');
+    if(metricsForm){
+      metricsForm.addEventListener('submit', (e)=>{
+        e.preventDefault();
+        const f = new FormData(metricsForm);
+        add('metrics', {
+          date: f.get('date'),
+          weight_kg: f.get('weight') ? Number(f.get('weight')) : null,
+          waist_cm: f.get('waist') ? Number(f.get('waist')) : null,
+          hips_cm: f.get('hips') ? Number(f.get('hips')) : null,
+          bust_cm: f.get('bust') ? Number(f.get('bust')) : null
+        });
+        metricsForm.reset();
+        render('#/metrics');
+      });
+    }
     // Settings page
     const setForm = document.getElementById('setForm');
     const exportBtn = document.getElementById('exportBtn');
@@ -276,11 +328,17 @@
       setForm.addEventListener('submit', (e)=>{
         e.preventDefault();
         const fd = new FormData(setForm);
+        const pages = {};
+        ['runs','strength','fasting','meditation','parkrun','metrics','stats'].forEach(m => {
+          pages[m] = fd.has('show_' + m);
+        });
         setSettings({
           name: fd.get('name'),
           age: fd.get('age') ? Number(fd.get('age')) : null,
-          units: fd.get('units')
+          units: fd.get('units'),
+          pages
         });
+        applyNavVisibility();
         alert('Saved');
         render('#/settings');
       });
@@ -316,7 +374,7 @@
     menuBtn.addEventListener('click', ()=> nav.classList.toggle('open'));
     nav.addEventListener('click', (e)=>{ if(e.target.matches('a[data-link]')) nav.classList.remove('open'); });
   }
-
+  applyNavVisibility();
   window.addEventListener('hashchange', ()=> render(location.hash));
   window.addEventListener('load', ()=> render(location.hash));
   window.requestRender = () => render(location.hash);

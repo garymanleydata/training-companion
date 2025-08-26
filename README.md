@@ -24,6 +24,8 @@ Local-first, offline-ready, single-page web app for logging runs, strength, fast
 - Fasting (with start/stop button)
 - Meditation/Breathing
 - parkrun (manual entry)
+- Metrics (weight, hips, waist, bust)
+- Stats (basic charts for runs, strength, Airofit and weight)
 
 ## Customisation
 - Basic styles in `styles.css`
@@ -31,4 +33,5 @@ Local-first, offline-ready, single-page web app for logging runs, strength, fast
 - Common helpers & storage in `lib.js`
 - Service worker in `sw.js`
 - App shell & routing in `app.js`
+- Show or hide individual module pages via checkboxes in Settings
 
