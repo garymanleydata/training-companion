@@ -133,7 +133,8 @@
       ...list('strength').map(x => ({...x, _type:'Strength', _stamp:x.createdAt})),
       ...list('fasting').map(x => ({...x, _type:'Fasting', _stamp:x.createdAt})),
       ...list('meditation').map(x => ({...x, _type:'Meditation', _stamp:x.createdAt})),
-      ...list('parkrun').map(x => ({...x, _type:'parkrun', _stamp:x.createdAt}))
+      ...list('parkrun').map(x => ({...x, _type:'parkrun', _stamp:x.createdAt})),
+      ...list('metrics').map(x => ({...x, _type:'Metrics', _stamp:x.createdAt}))
     ].sort((a,b)=> new Date(b._stamp) - new Date(a._stamp)).slice(0,10);
     if(!rows.length) return `<p class="meta">Nothing logged yet — try the quick add forms above or visit a module from the nav.</p>`;
     return `<div class="list">` + rows.map(r => {
@@ -143,6 +144,12 @@
         if(r._type==='Fasting') return r.end ? `${Math.round((new Date(r.end)-new Date(r.start))/36e5)} h` : `Started`;
         if(r._type==='parkrun') return `${fmtTimeSeconds(r.time_sec)} · ${r.event_name}`;
         if(r._type==='Strength') return (r.exercises||[]).map(e=>`${e.name} ${e.sets}×${e.reps}@${e.load_kg||0}kg`).join(', ');
+        if(r._type==='Metrics') return [
+          r.weight_kg!=null ? `${r.weight_kg} kg` : null,
+          r.waist_cm!=null ? `Waist ${r.waist_cm} cm` : null,
+          r.hips_cm!=null ? `Hips ${r.hips_cm} cm` : null,
+          r.bust_cm!=null ? `Bust ${r.bust_cm} cm` : null
+        ].filter(Boolean).join(' · ');
         return '';
       })();
       return `<div class="row"><div><span class="badge">${r._type}</span> ${fmtDate(r.date||r.start||r._stamp)}</div><div class="meta">${right}</div></div>`;
@@ -264,6 +271,23 @@
         });
         pkForm.reset();
         render('#/parkrun');
+      });
+    }
+    // Metrics page
+    const metricsForm = document.getElementById('metricsForm');
+    if(metricsForm){
+      metricsForm.addEventListener('submit', (e)=>{
+        e.preventDefault();
+        const f = new FormData(metricsForm);
+        add('metrics', {
+          date: f.get('date'),
+          weight_kg: f.get('weight') ? Number(f.get('weight')) : null,
+          waist_cm: f.get('waist') ? Number(f.get('waist')) : null,
+          hips_cm: f.get('hips') ? Number(f.get('hips')) : null,
+          bust_cm: f.get('bust') ? Number(f.get('bust')) : null
+        });
+        metricsForm.reset();
+        render('#/metrics');
       });
     }
     // Settings page

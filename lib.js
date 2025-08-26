@@ -9,7 +9,8 @@ const defaultDB = () => ({
   strength: [],
   fasting: [],
   meditation: [],
-  parkrun: []
+  parkrun: [],
+  metrics: []
 });
 
 function loadDB(){
