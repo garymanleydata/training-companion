@@ -4,7 +4,21 @@
 const DB_KEY = 'tc_data_v1';
 
 const defaultDB = () => ({
-  settings: { name: '', age: null, units: 'km', theme: 'auto' },
+  settings: {
+    name: '',
+    age: null,
+    units: 'km',
+    theme: 'auto',
+    pages: {
+      runs: true,
+      strength: true,
+      fasting: true,
+      meditation: true,
+      parkrun: true,
+      metrics: true,
+      stats: true
+    }
+  },
   runs: [],
   strength: [],
   fasting: [],
@@ -48,6 +62,10 @@ function removeItem(module, id){
 function getSettings(){ return loadDB().settings || {}; }
 function setSettings(newSettings){
   const db = loadDB();
+  if(newSettings.pages){
+    db.settings.pages = { ...(db.settings.pages||{}), ...newSettings.pages };
+    delete newSettings.pages;
+  }
   db.settings = { ...db.settings, ...newSettings };
   saveDB(db);
 }

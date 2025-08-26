@@ -1,8 +1,9 @@
 Views.meditation = function(){
   FAB.set('meditation', () => {
     const d = new Date().toISOString().slice(0,10);
+    const method = prompt('Method? (Mindfulness, Airofit…)', 'Mindfulness') || 'Mindfulness';
     const min = Number(prompt('Minutes?', '10')||'0');
-    if(min>0) add('meditation', { date:d, method:'Mindfulness', duration_min:min });
+    if(min>0) add('meditation', { date:d, method, duration_min:min });
     requestRender();
   });
 
@@ -17,7 +18,7 @@ Views.meditation = function(){
         <div class="grid">
           <div class="span-6"><label>Date <input type="date" name="date" required></label></div>
           <div class="span-6"><label>Method
-            <select name="method"><option>Mindfulness</option><option>Box breathing</option><option>Wim Hof</option><option>Nasal-only</option></select>
+            <select name="method"><option>Mindfulness</option><option>Box breathing</option><option>Wim Hof</option><option>Nasal-only</option><option>Airofit</option></select>
           </label></div>
         </div>
         <label>Duration (min) <input type="number" name="min" required></label>
