@@ -318,6 +318,16 @@
         render('#/metrics');
       });
     }
+    // Report page
+    const csvForm = document.getElementById('csvForm');
+    if(csvForm){
+      csvForm.addEventListener('submit', (e)=>{
+        e.preventDefault();
+        const fd = new FormData(csvForm);
+        const mods = ['runs','strength','meditation','fasting','parkrun','metrics'].filter(m => fd.has(m));
+        exportCSV({ from: fd.get('from'), to: fd.get('to'), mods });
+      });
+    }
     // Settings page
     const setForm = document.getElementById('setForm');
     const exportBtn = document.getElementById('exportBtn');
