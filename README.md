@@ -24,6 +24,7 @@ Local-first, offline-ready, single-page web app for logging runs, strength, fast
 - Fasting (with start/stop button)
 - Meditation/Breathing
 - parkrun (manual entry)
+- Metrics (weight, hips, waist, bust)
 
 ## Customisation
 - Basic styles in `styles.css`
