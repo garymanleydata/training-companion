@@ -27,6 +27,7 @@ Local-first, offline-ready, single-page web app for logging runs, strength, fast
 - Metrics (weight, hips, waist, bust)
 - Stats (basic charts for runs, strength, Airofit and weight)
 
+
 ## Customisation
 - Basic styles in `styles.css`
 - Pages/views in `/modules/*.js`
