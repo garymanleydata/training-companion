@@ -6,6 +6,8 @@
   const yearEl = document.getElementById('year');
   if(yearEl) yearEl.textContent = new Date().getFullYear();
 
+  recalcBMI();
+
   function applyNavVisibility(){
     if(!nav) return;
     const p = (getSettings().pages) || {};
@@ -174,6 +176,8 @@
         ].filter(Boolean).join(' · ');
         if(r._type==='Metrics') return [
           r.weight_kg!=null ? `${r.weight_kg} kg` : null,
+          r.height_cm!=null ? `Height ${r.height_cm} cm` : null,
+          r.bmi!=null ? `BMI ${r.bmi}` : null,
           r.waist_cm!=null ? `Waist ${r.waist_cm} cm` : null,
           r.hips_cm!=null ? `Hips ${r.hips_cm} cm` : null,
           r.bust_cm!=null ? `Bust ${r.bust_cm} cm` : null
@@ -310,10 +314,12 @@
         add('metrics', {
           date: f.get('date'),
           weight_kg: f.get('weight') ? Number(f.get('weight')) : null,
+          height_cm: f.get('height') ? Number(f.get('height')) : null,
           waist_cm: f.get('waist') ? Number(f.get('waist')) : null,
           hips_cm: f.get('hips') ? Number(f.get('hips')) : null,
           bust_cm: f.get('bust') ? Number(f.get('bust')) : null
         });
+        recalcBMI();
         metricsForm.reset();
         render('#/metrics');
       });
@@ -360,6 +366,7 @@
         if(!file) return;
         try{
           await importJSON(file, { merge: !!(mergeChk && mergeChk.checked) });
+          recalcBMI();
           alert('Import complete');
           render('#/settings');
         }catch(err){

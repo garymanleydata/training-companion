@@ -86,6 +86,8 @@ window.exportCSV = function({from,to,mods}){
       if(!d || d < from || d > to) return;
       const o = map[d] || (map[d] = {date:d});
       if(m.weight_kg!=null) o.weight_kg = m.weight_kg;
+      if(m.height_cm!=null) o.height_cm = m.height_cm;
+      if(m.bmi!=null) o.bmi = m.bmi;
       if(m.waist_cm!=null) o.waist_cm = m.waist_cm;
       if(m.hips_cm!=null) o.hips_cm = m.hips_cm;
       if(m.bust_cm!=null) o.bust_cm = m.bust_cm;
@@ -105,7 +107,7 @@ window.exportCSV = function({from,to,mods}){
     meditation:['meditation_duration_min','meditation_count'],
     fasting:['fasting_duration_h','fasting_count'],
     parkrun:['parkrun_time_sec','parkrun_count'],
-    metrics:['weight_kg','waist_cm','hips_cm','bust_cm']
+    metrics:['weight_kg','height_cm','bmi','waist_cm','hips_cm','bust_cm']
   };
   const cols = ['date'];
   mods.forEach(m => { (moduleCols[m]||[]).forEach(c => cols.push(c)); });

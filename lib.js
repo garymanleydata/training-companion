@@ -135,6 +135,36 @@ function toSeconds(hhmmss){
 }
 function mafHR(age, adjust=0){ return 180 - (Number(age)||0) + (Number(adjust)||0); }
 
+function calcBMI(weightKg, heightCm){
+  if(weightKg==null || heightCm==null || heightCm<=0) return null;
+  const h = heightCm/100;
+  return Math.round((weightKg/(h*h))*10)/10;
+}
+
+function recalcBMI(){
+  const db = loadDB();
+  const metrics = db.metrics || [];
+  let currentHeight = null;
+  for(const m of metrics){
+    if(m.height_cm!=null){ currentHeight = m.height_cm; break; }
+  }
+  if(currentHeight==null) return;
+  let changed = false;
+  for(const m of metrics){
+    if(m.height_cm!=null) currentHeight = m.height_cm;
+    if(m.weight_kg!=null){
+      const bmi = calcBMI(m.weight_kg, currentHeight);
+      if(m.bmi !== bmi){
+        m.bmi = bmi;
+        if(m.height_cm==null) m.height_cm = currentHeight;
+        m.updatedAt = new Date().toISOString();
+        changed = true;
+      }
+    }
+  }
+  if(changed) saveDB(db);
+}
+
 // Router
 const Views = {}; // modules attach their render functions here
 
