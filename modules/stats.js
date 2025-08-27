@@ -3,12 +3,14 @@ Views.stats = function(){
   const strength = Stats.sumByDate(list('strength'), 'duration_min');
   const airofit = Stats.sumByDate(list('meditation'), 'duration_min', m => m.method === 'Airofit');
   const weight = Stats.lastByDate(list('metrics'), 'weight_kg');
+  const bmi = Stats.lastByDate(list('metrics'), 'bmi');
 
   setTimeout(() => {
     drawLine('runsChart', runs);
     drawLine('strengthChart', strength);
     drawLine('airofitChart', airofit);
     drawLine('weightChart', weight);
+    drawLine('bmiChart', bmi);
   });
 
   function section(title, id, has){
@@ -25,6 +27,7 @@ Views.stats = function(){
     ${section('Strength time (min)', 'strengthChart', strength.length)}
     ${section('Airofit time (min)', 'airofitChart', airofit.length)}
     ${section('Weight (kg)', 'weightChart', weight.length)}
+    ${section('BMI', 'bmiChart', bmi.length)}
   `;
 };
 

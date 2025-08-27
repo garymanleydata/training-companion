@@ -24,8 +24,8 @@ Local-first, offline-ready, single-page web app for logging runs, strength, fast
 - Fasting (with start/stop button)
 - Meditation/Breathing
 - parkrun (manual entry)
-- Metrics (weight, hips, waist, bust)
-- Stats (basic charts for runs, strength, Airofit and weight)
+- Metrics (weight, height, hips, waist, bust, BMI)
+- Stats (basic charts for runs, strength, Airofit, weight and BMI)
 
 
 ## Customisation
